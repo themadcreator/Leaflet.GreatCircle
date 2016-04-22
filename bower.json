@@ -1,7 +1,7 @@
 {
   "name": "Leaflet.GreatCircle",
   "description": "Draw accurately projected circles on a leaflet map",
-  "main": "dist/leaflet-great-circle-bower.js",
+  "main": ["dist/leaflet-great-circle-bower.js"],
   "license": "Apache-2.0",
   "homepage": "https://github.com/themadcreator/Leaflet.GreatCircle",
   "moduleType": [
@@ -12,6 +12,7 @@
     "**/.*",
     "node_modules",
     "bower_components",
+    "demo",
     "test",
     "tests"
   ]
