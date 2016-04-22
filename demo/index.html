@@ -1,0 +1,36 @@
+<html>
+<head>
+
+  <!-- leaflet -->
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+  <script type="text/javascript" src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+
+  <!-- leaflet.draw -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.2.3/leaflet.draw.css" />
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.2.3/leaflet.draw-src.js"></script>
+
+  <!-- this library -->
+  <script type="text/javascript" src="../dist/leaflet-great-circle-bower.js"></script>
+</head>
+<body>
+
+  <div id="map" style="width: 800px; height: 600px;"></div>
+
+  <script type="text/javascript">
+    (function() {
+      var map   = L.map('map', {drawControl: true}).setView([51.505, -0.09], 2);
+      var tiles = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19}).addTo(map);
+
+      // override Leaflet.Draw's circle drawing
+      L.Draw.Circle.prototype._drawShape = function (latlng) {
+        if (!this._shape) {
+          this._shape = new L.GreatCircle(this._startLatLng, this._startLatLng.distanceTo(latlng), this.options.shapeOptions);
+          this._map.addLayer(this._shape);
+        } else {
+          this._shape.setRadius(this._startLatLng.distanceTo(latlng));
+        }
+      };
+    })();
+  </script>
+</body>
+</html>
