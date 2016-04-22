@@ -22,7 +22,7 @@ We do also support node, though, so you can `npm install Leaflet.GreatCircle`.
 
 # Usage
 
-    L.greatCircle(centerLatLng, radiusInMeters, { fill : 'red' }).addTo(map);
+    L.greatCircle(centerLatLng, radiusInMeters, shapeOptions).addTo(map);
 
 # Leaflet.Draw Example
 
@@ -46,3 +46,24 @@ Then, the circles will be drawn accurately, like so:
 ![Polar Wrap](/screenshots/sshot2.png?raw=true "Polar Wrap")
 
 ![Antimeridian Wrap](/screenshots/sshot3.png?raw=true "Antimeridian Wrap")
+
+![Shifted Antimeridian](/screenshots/sshot4.png?raw=true "Shifted Antimeridian")
+
+
+# API
+
+#### Options
+
+L.GreatCircle can by passed an options hash in the third argument. In addition
+to the options supported by L.MultiPolygon, this shape supports:
+
+|| key || default || description ||
+| segments | 120 | The number of line segments around the circle. Additional segments may be added when wrapping around a pole or antimeridian. |
+| maxRadiusMeters | 10 * 1000 * 1000 | The max circle radius. The default of 10,000 km radius is to prevent wrap-around inversion artifacts. Larger maximums may see these artifacts. |
+| longitudeDeltaWrapCutoff | 90 | This parameter determines how many degrees longitude a line segment can jump before we consider it to be a polar or antimerdian wrapping case. |
+
+#### Methods
+
+getLatLng / setLatLng - gets/sets the center of the circle
+
+getRadius / setRadius - gets/sets the radius of the circle

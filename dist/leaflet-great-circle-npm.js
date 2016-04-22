@@ -3,17 +3,31 @@ var geodesy = require('geodesy');
 
 var NORTH_POLE = new geodesy.LatLonEllipsoidal(90, -180);
 var SOUTH_POLE = new geodesy.LatLonEllipsoidal(-90, 180);
-var LONGITUDE_DELTA_WRAP_CUTOFF = 120;
-var CIRCLE_SEGMENTS = 120;
-var MAX_RADIUS_METERS = 10 * 1000 * 1000; // Max 10,000 km radius to prevent wrap-around inversion artifacts
 
 L.GreatCircle = L.MultiPolygon.extend({
-  initialize: function (latlng, radius, options) {
-    this._latlng = L.latLng(latlng);
-    this._mRadius = Math.min(MAX_RADIUS_METERS, radius);
-    var shape = this._computeShape(this._latlng, this._mRadius);
+  options : {
+    // The number of line segments around the circle. Additional
+    // segments may be added when wrapping around a pole or antimeridian.
+    segments : 120,
 
-    L.MultiPolygon.prototype.initialize.call(this, shape, options);
+    // The max circle radius. The default of 10,000 km radius
+    // is to prevent wrap-around inversion artifacts. Larger maximums
+    // may see these artifacts.
+    maxRadiusMeters : 10 * 1000 * 1000,
+
+    // This parameter determines how many degrees longitude a line segment
+    // can jump before we consider it to be a polar or antimerdian
+    // wrapping case
+    longitudeDeltaWrapCutoff : 90
+  },
+
+  initialize: function (latlng, radius, options) {
+    L.MultiPolygon.prototype.initialize.call(this, [], options);
+
+    this._latlng = L.latLng(latlng);
+    this._mRadius = Math.min(this.options.maxRadiusMeters, radius);
+    var shape = this._computeShape(this._latlng, this._mRadius);
+    this.setLatLngs(shape);
   },
 
   setLatLng: function (latlng) {
@@ -27,7 +41,7 @@ L.GreatCircle = L.MultiPolygon.extend({
   },
 
   setRadius: function (radius) {
-    this._mRadius = Math.min(MAX_RADIUS_METERS, radius);
+    this._mRadius = Math.min(this.options.maxRadiusMeters, radius);
     var shape = this._computeShape(this._latlng, this._mRadius);
     return this.setLatLngs(shape);
   },
@@ -46,71 +60,78 @@ L.GreatCircle = L.MultiPolygon.extend({
   _computeShape: function (center, radius) {
     var center = new geodesy.LatLonEllipsoidal(center.lat, center.lng);
     var coords = [];
-    for (var i = 0; i < CIRCLE_SEGMENTS; i++) {
-      var bearing = (i * 360.0 / CIRCLE_SEGMENTS);
+    for (var i = 0; i < this.options.segments; i++) {
+      var bearing = (i * 360.0 / this.options.segments);
       coords.push(center.destinationPoint(radius, bearing));
     }
-    return this._correctProjectionWrapAround(coords, center, radius);
+
+    var corrected = this._correctProjectionWrapAround(coords, center, radius);
+    return corrected;
   },
 
   _correctProjectionWrapAround: function (coords, center, radius) {
+    // shift and normalize original coordinates to reduce possibility of anti-meridian wrapping
+    var shift = center.lon;
+    coords.forEach(function (coord) { coord.lon = (coord.lon - shift + 540) % 360 - 180; });
+
     var multipolygon = [[]];
     var part = 0;
-
     for (var i = 1; i <= coords.length; i++) {
       var c0 = coords[i - 1];
       var c1 = (i === coords.length) ? coords[0] : coords[i];
 
       // correct the shape if we cross the anti-meridian or a pole.
       var deltaLon = c1.lon - c0.lon;
-      if (deltaLon > LONGITUDE_DELTA_WRAP_CUTOFF) {
-        console.log("north", center.distanceTo(NORTH_POLE), radius);
+      if (deltaLon > this.options.longitudeDeltaWrapCutoff) {
         if (center.distanceTo(NORTH_POLE) > radius) {
           // anti-meridian case
           if (part === 0) {
             multipolygon[part].push({lat: c0.lat, lon: -180});
             multipolygon.push([]);
             part = 1;
-            multipolygon[part].push({lat: c1.lat, lon: 180});
+            multipolygon[part].push({lat: c1.lat, lon:  180});
           } else {
             multipolygon[part].push({lat: c0.lat, lon: -180});
             part = 0;
-            multipolygon[part].push({lat: c1.lat, lon: 180});
+            multipolygon[part].push({lat: c1.lat, lon:  180});
           }
         } else {
           // north pole case
           multipolygon[part].push({lat: c0.lat, lon: -180});
-          multipolygon[part].push({lat: 90, lon: -180});
-          multipolygon[part].push({lat: 90, lon: 180});
-          multipolygon[part].push({lat: c1.lat, lon: 180});
+          multipolygon[part].push({lat: 90,     lon: -180});
+          multipolygon[part].push({lat: 90,     lon:  180});
+          multipolygon[part].push({lat: c1.lat, lon:  180});
         }
       }
 
-      if (deltaLon < -LONGITUDE_DELTA_WRAP_CUTOFF) {
+      if (deltaLon < -this.options.longitudeDeltaWrapCutoff) {
         if (center.distanceTo(SOUTH_POLE) > radius) {
           // anti-meridian case
           if (part === 0) {
-            multipolygon[part].push({lat: c0.lat, lon: 180});
+            multipolygon[part].push({lat: c0.lat, lon:  180});
             multipolygon.push([]);
             part = 1;
             multipolygon[part].push({lat: c1.lat, lon: -180});
           } else {
-            multipolygon[part].push({lat: c0.lat, lon: 180});
+            multipolygon[part].push({lat: c0.lat, lon:  180});
             part = 0;
             multipolygon[part].push({lat: c1.lat, lon: -180});
           }
         } else {
           // south pole case
-          multipolygon[part].push({lat: c0.lat, lon: 180});
-          multipolygon[part].push({lat: -90, lon: 180});
-          multipolygon[part].push({lat: -90, lon: -180});
+          multipolygon[part].push({lat: c0.lat, lon:  180});
+          multipolygon[part].push({lat: -90,    lon:  180});
+          multipolygon[part].push({lat: -90,    lon: -180});
           multipolygon[part].push({lat: c1.lat, lon: -180});
         }
       }
 
-      // finally add the computed coordinate
+      // finally add the original coordinate
       multipolygon[part].push(c1);
     }
+
+    // unshift corrected coordinates
+    multipolygon.forEach(function (part) { part.forEach(function (coord) { coord.lon += shift; }) });
 
     return multipolygon;
   }
