@@ -8,6 +8,9 @@
     "globals",
     "node"
   ],
+  "dependencies": {
+    "mapbox.js": "2.1.3"
+  },
   "ignore": [
     "**/.*",
     "node_modules",
