@@ -25,6 +25,8 @@
       L.Draw.Circle.prototype._drawShape = function (latlng) {
         this.options.shapeOptions.color = "#F82";
         this.options.shapeOptions.fillOpacity = 0.5;
+        // this.options.shapeOptions.maxRadiusMeters = 1 * 1000 * 1000;
+        // this.options.shapeOptions.preventAntimeridianWrapping = false;
 
         if (!this._shape) {
           this._shape = new L.GreatCircle(this._startLatLng, this._startLatLng.distanceTo(latlng), this.options.shapeOptions);

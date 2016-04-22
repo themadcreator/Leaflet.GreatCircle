@@ -3105,16 +3105,23 @@ L.GreatCircle = L.MultiPolygon.extend({
     // This parameter determines how many degrees longitude a line segment
     // can jump before we consider it to be a polar or antimerdian
     // wrapping case
-    longitudeDeltaWrapCutoff : 90
+    longitudeDeltaWrapCutoff : 90,
+
+    // By default, we try to avoid wrapping circles across the antimeridian
+    // by performing the calculations in a shifted reference frame. To
+    // ensure the shapes wrap exactly at the antimeridian, set this
+    // parameter to false.
+    preventAntimeridianWrapping : true
   },
 
   initialize: function (latlng, radius, options) {
-    L.MultiPolygon.prototype.initialize.call(this, [], options);
+    L.setOptions(this, options);
 
     this._latlng = L.latLng(latlng);
     this._mRadius = Math.min(this.options.maxRadiusMeters, radius);
     var shape = this._computeShape(this._latlng, this._mRadius);
-    this.setLatLngs(shape);
+
+    L.MultiPolygon.prototype.initialize.call(this, shape, options);
   },
 
   setLatLng: function (latlng) {
@@ -3159,7 +3166,9 @@ L.GreatCircle = L.MultiPolygon.extend({
   _correctProjectionWrapAround: function (coords, center, radius) {
     // shift and normalize original coordinates to reduce possibility of anti-meridian wrapping
     var shift = center.lon;
-    coords.forEach(function (coord) { coord.lon = (coord.lon - shift + 540) % 360 - 180; });
+    if (this.options.preventAntimeridianWrapping) {
+      coords.forEach(function (coord) { coord.lon = (coord.lon - shift + 540) % 360 - 180; });
+    }
 
     var multipolygon = [[]];
     var part = 0;
@@ -3218,7 +3227,9 @@ L.GreatCircle = L.MultiPolygon.extend({
     }
 
     // unshift corrected coordinates
-    multipolygon.forEach(function (part) { part.forEach(function (coord) { coord.lon += shift; }) });
+    if (this.options.preventAntimeridianWrapping) {
+      multipolygon.forEach(function (part) { part.forEach(function (coord) { coord.lon += shift; }) });
+    }
 
     return multipolygon;
   }
