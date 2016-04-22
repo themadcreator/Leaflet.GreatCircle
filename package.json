@@ -1,6 +1,6 @@
 {
   "name": "Leaflet.GreatCircle",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Draw accurately projected circles on a leaflet map",
   "main": "dist/leaflet-great-circle-npm.js",
   "scripts": {
