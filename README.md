@@ -59,12 +59,12 @@ to the options supported by L.MultiPolygon, this shape supports:
 
 key | default | description
 --- | :---: | ---
-segments | 120 | The number of line segments around the circle. Additional segments may be added when wrapping around a pole or antimeridian.
-maxRadiusMeters | 10 * 1000 * 1000 | The max circle radius. The default of 10,000 km radius is to prevent wrap-around inversion artifacts. Larger maximums may see these artifacts.
-longitudeDeltaWrapCutoff | 90 | This parameter determines how many degrees longitude a line segment can jump before we consider it to be a polar or antimerdian wrapping case.
+`segments` | 120 | The number of line segments around the circle. Additional segments may be added when wrapping around a pole or antimeridian.
+`maxRadiusMeters` | 10 * 1000 * 1000 | The max circle radius. The default of 10,000 km radius is to prevent wrap-around inversion artifacts. Larger maximums may see these artifacts.
+`longitudeDeltaWrapCutoff` | 90 | This parameter determines how many degrees longitude a line segment can jump before we consider it to be a polar or antimerdian wrapping case.
 
 #### Methods
 
-getLatLng / setLatLng - gets/sets the center of the circle
+`getLatLng` / `setLatLng` - gets/sets the center of the circle
 
-getRadius / setRadius - gets/sets the radius of the circle
+`getRadius` / `setRadius` - gets/sets the radius of the circle
