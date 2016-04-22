@@ -3,7 +3,7 @@ var geodesy = require('geodesy');
 
 var NORTH_POLE = new geodesy.LatLonEllipsoidal(90, -180);
 var SOUTH_POLE = new geodesy.LatLonEllipsoidal(-90, 180);
-var LONGITUDE_DELTA_WRAP_CUTOFF = 90;
+var LONGITUDE_DELTA_WRAP_CUTOFF = 120;
 var CIRCLE_SEGMENTS = 120;
 var MAX_RADIUS_METERS = 10 * 1000 * 1000; // Max 10,000 km radius to prevent wrap-around inversion artifacts
 
@@ -50,7 +50,7 @@ L.GreatCircle = L.MultiPolygon.extend({
       var bearing = (i * 360.0 / CIRCLE_SEGMENTS);
       coords.push(center.destinationPoint(radius, bearing));
     }
-    return this._correctProjectionWrapAround(coords, center, this._radius);
+    return this._correctProjectionWrapAround(coords, center, radius);
   },
 
   _correctProjectionWrapAround: function (coords, center, radius) {
@@ -64,6 +64,7 @@ L.GreatCircle = L.MultiPolygon.extend({
       // correct the shape if we cross the anti-meridian or a pole.
       var deltaLon = c1.lon - c0.lon;
       if (deltaLon > LONGITUDE_DELTA_WRAP_CUTOFF) {
+        console.log("north", center.distanceTo(NORTH_POLE), radius);
         if (center.distanceTo(NORTH_POLE) > radius) {
           // anti-meridian case
           if (part === 0) {

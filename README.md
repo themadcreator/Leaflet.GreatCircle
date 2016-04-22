@@ -23,3 +23,26 @@ We do also support node, though, so you can `npm install Leaflet.GreatCircle`.
 # Usage
 
     L.greatCircle(centerLatLng, radiusInMeters, { fill : 'red' }).addTo(map);
+
+# Leaflet.Draw Example
+
+You can override the Leaflet.Draw plugin to use this library like so:
+
+    L.Draw.Circle.prototype._drawShape = function (latlng) {
+      if (!this._shape) {
+        this._shape = new L.GreatCircle(this._startLatLng, this._startLatLng.distanceTo(latlng), this.options.shapeOptions);
+        this._map.addLayer(this._shape);
+      } else {
+        this._shape.setRadius(this._startLatLng.distanceTo(latlng));
+      }
+    };
+
+Then, the circles will be drawn accurately, like so:
+
+![Simple Circle](/screenshots/sshot0.png?raw=true "Simple Circle")
+
+![Polar Boundary](/screenshots/sshot1.png?raw=true "Polar Boundary")
+
+![Polar Wrap](/screenshots/sshot2.png?raw=true "Polar Wrap")
+
+![Antimeridian Wrap](/screenshots/sshot3.png?raw=true "Antimeridian Wrap")

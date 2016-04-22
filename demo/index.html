@@ -23,6 +23,9 @@
 
       // override Leaflet.Draw's circle drawing
       L.Draw.Circle.prototype._drawShape = function (latlng) {
+        this.options.shapeOptions.color = "#F82";
+        this.options.shapeOptions.fillOpacity = 0.5;
+
         if (!this._shape) {
           this._shape = new L.GreatCircle(this._startLatLng, this._startLatLng.distanceTo(latlng), this.options.shapeOptions);
           this._map.addLayer(this._shape);
